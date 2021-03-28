@@ -14,7 +14,8 @@ let promise = new Promise((resolve, reject) => {
     // reject('失败');
     // 2. 异步promise。先把then存起来，异步调用resolve后再执行。发布订阅模式。
     setTimeout(() => {
-        resolve('成功');
+        // resolve('成功');
+        reject('失败');
     }, 1000);
 })
 
@@ -40,7 +41,10 @@ promise.then((value) => {
     // return;
     // return new Error();  // return 一个错误 不是报错
     // throw Error('报错'); // 报错
-    // return new Promise();
+    return new Promise((resolve, reject) => {
+        // resolve('okk')
+        reject('errr')
+    });
 }, (err) => {
     console.log('error', err)
 }).then((value) => {
