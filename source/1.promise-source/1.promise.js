@@ -142,8 +142,11 @@ class Promise {
         });
         return promise2;
     }
-    catch(onRejected) {
+    catch (onRejected) {
         return this.then(null, onRejected)
+    }
+    finally(callBack) {
+        return this.then(callBack, callBack)
     }
     // 静态方法
     static resolve(value) {
@@ -154,6 +157,47 @@ class Promise {
     static reject(err) {
         return new Promise((resolve, reject) => {
             reject(err);
+        })
+    }
+    static all(promises) {
+        return new Promise((resolve, reject) => {
+            let result = [];
+            let times = 0;
+            const processSuccess = (i, p) => {
+                result[i] = p;
+                if (++times === promises.length) {
+                    resolve(result);
+                }
+            }
+
+            for (let i = 0; i < promises.length; i++) {
+                let p = promises[i];
+                if (p && typeof p.then === 'function') {
+                    p.then(value => {
+                        processSuccess(i, value);
+                    }, reject); // 一个失败，就失败
+                } else {
+                    processSuccess(i, p);
+                }
+            }
+        })
+    }
+    static race(promises) {
+        return new Promise((resolve, reject) => {
+            const processSuccess = (i, p) => {
+                resolve(p);
+            }
+
+            for (let i = 0; i < promises.length; i++) {
+                let p = promises[i];
+                if (p && typeof p.then === 'function') {
+                    p.then(value => {
+                        processSuccess(i, value);
+                    }, reject); // 一个失败，就失败
+                } else {
+                    processSuccess(i, p);
+                }
+            }
         })
     }
 }
@@ -167,10 +211,10 @@ class Promise {
 // 延迟对象 帮我们减少一次套用 ： 针对目前来说 应用不是很广泛
 Promise.deferred = function () {
     let dfd = {};
-    dfd.promise = new Promise((resolve,reject)=>{
-        dfd.resolve= resolve;
+    dfd.promise = new Promise((resolve, reject) => {
+        dfd.resolve = resolve;
         dfd.reject = reject;
-    }); 
+    });
     return dfd;
 }
 

@@ -14,8 +14,8 @@ let promise = new Promise((resolve, reject) => {
     // reject('失败');
     // 2. 异步promise。先把then存起来，异步调用resolve后再执行。发布订阅模式。
     setTimeout(() => {
-        // resolve('成功');
-        reject('失败');
+        resolve('成功');
+        // reject('失败');
     }, 1000);
 })
 
@@ -56,24 +56,44 @@ let promise = new Promise((resolve, reject) => {
 
 // 4. resolve传参问题 传promise 或 普通值
 // 5. 值的穿透
-promise.then((value) => {
-    console.log('success', value)
-    return new Promise((resolve, reject) => {
-        resolve()
-    });
-}, (err) => {
-    console.log('error', err)
-}).then((value) => {
-    console.log('success2', value)
-}, (err) => {
-    console.log('error2', err)
-})
+// promise.then((value) => {
+//     console.log('success', value)
+//     return new Promise((resolve, reject) => {
+//         resolve(new Promise((resolve, reject) => {
+//             resolve(100)
+//         }))
+//     });
+// }, (err) => {
+//     console.log('error', err)
+// }).then((value) => {
+//     console.log('success2', value)
+// }, (err) => {
+//     console.log('error2', err)
+// })
 
 // 6. 静态方法 Promise.resolve()
 
 // 7. 原型方法 catch
 
 // 8. all finally  race
+Promise.race([
+    new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(100)
+        }, 1000);
+    }),
+    new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(200)
+        }, 2000);
+    })
+]).then(value => {
+    console.log('value', value)
+}).catch(err => {
+    console.log('err', err)
+}).finally(() => {
+    console.log('finally');
+})
 
 
 
