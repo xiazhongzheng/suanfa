@@ -16,16 +16,21 @@ class Promise {
         this.status = PENDING;
         this.value;
         this.reason;
+
+        this.onResolvedCallbacks = [];
+        this.onRejectedCallbacks = [];
         const resolve = (value) => {
             if (this.status === PENDING) {
                 this.value = value;
                 this.status = FULFILLED;
+                this.onResolvedCallbacks.forEach(fn => fn());
             }
         }
         const reject = (reason) => {
             if (this.status === PENDING) {
                 this.reason = reason;
                 this.status = REJECTED;
+                this.onRejectedCallbacks.forEach(fn => fn());
             }
         }
         try {
@@ -35,12 +40,50 @@ class Promise {
         }
     }
     then(onFulfilled, onRejected) { // onFulfilled,  onRejected
-        if (this.status === FULFILLED) {
-            onFulfilled(this.value);
-        }
-        if (this.status === REJECTED) {
-            onRejected(this.reason);
-        }
+
+        let promise2 = new Promise((resolve, reject) => {
+            if (this.status === PENDING) { // 异步  发布订阅
+                this.onResolvedCallbacks.push(() => {
+                    // 切片编程 AOP
+                    // before  todo ..
+                    try {
+                        let x = onFulfilled(this.value);
+                        resolve(x);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+                this.onRejectedCallbacks.push(() => {
+                    // 切片编程 AOP
+                    // before  todo ..
+                    try {
+                        let x = onRejected(this.reason);
+                        resolve(x);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+            if (this.status === FULFILLED) {
+                try {
+                    let x = onFulfilled(this.value);
+                    // x 可能是promise 。。。
+
+                    resolve(x);
+                } catch (error) {
+                    reject(error);
+                }
+            }
+            if (this.status === REJECTED) {
+                try {
+                    let x = onRejected(this.reason);
+                    resolve(x);
+                } catch (error) {
+                    reject(error);
+                }
+            }
+        });
+        return promise2;
     }
 }
 
