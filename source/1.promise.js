@@ -31,19 +31,35 @@ let promise = new Promise((resolve, reject) => {
 //     console.log('error2', err)
 // });
 
-// 3. 链式调用  then会返回新的promise
+// 3. 链式调用  then会返回新的promise 
+// onFulfilled,  onRejected 的返回值x的问题
 // 3.1 then返回普通值  作为下一层then的成功  // 无论then走的是resolve还是reject
 // 3.2 then 报错  下一次then的失败
 // 3.3 then返回promise 
+// promise.then((value) => {
+//     console.log('success', value)
+//     // return 1;
+//     // return;
+//     // return new Error();  // return 一个错误 不是报错
+//     // throw Error('报错'); // 报错
+//     return new Promise((resolve, reject) => {
+//         // resolve('okk')
+//         reject('errr')
+//     });
+// }, (err) => {
+//     console.log('error', err)
+// }).then((value) => {
+//     console.log('success2', value)
+// }, (err) => {
+//     console.log('error2', err)
+// })
+
+// 4. resolve传参问题 传promise 或 普通值
+// 5. 值的穿透
 promise.then((value) => {
     console.log('success', value)
-    // return 1;
-    // return;
-    // return new Error();  // return 一个错误 不是报错
-    // throw Error('报错'); // 报错
     return new Promise((resolve, reject) => {
-        // resolve('okk')
-        reject('errr')
+        resolve()
     });
 }, (err) => {
     console.log('error', err)
@@ -52,6 +68,12 @@ promise.then((value) => {
 }, (err) => {
     console.log('error2', err)
 })
+
+// 6. 静态方法 Promise.resolve()
+
+// 7. 原型方法 catch
+
+// 8. all finally  race
 
 
 

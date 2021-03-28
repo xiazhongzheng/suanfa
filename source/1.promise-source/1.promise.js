@@ -21,25 +21,27 @@ function resolvePromise(promise2, x, resolve, reject) {
         try { // 取值时也可能报错 getter方法
             let then = x.then;
 
+            // onFulfilled,  onRejected里返回 promise
             if (typeof then === 'function') {
                 // x 作为this 调用then 
                 // 不用x.then();  因为会再次触发getter ，或许会报错
                 then.call(x, y => {
                     if (called) return;
                     called = true;
-                    resolve(y);
+                    // resolve(y);
+                    resolvePromise(promise2, y, resolve, reject); // 直到解析他不是promise位置
                 }, r => {
                     if (called) return;
                     called = true;
                     reject(r);
                 });
             } else {
-                if (called) return;
-                called = true;
                 resolve(x);
             }
 
         } catch (error) {
+            if (called) return;
+            called = true;
             reject(error);
         }
 
@@ -58,6 +60,11 @@ class Promise {
         this.onResolvedCallbacks = [];
         this.onRejectedCallbacks = [];
         const resolve = (value) => {
+            // value可能是自己的promise
+            if (value instanceof Promise) {
+                return value.then(resolve, reject)
+            }
+
             if (this.status === PENDING) {
                 this.value = value;
                 this.status = FULFILLED;
@@ -78,7 +85,11 @@ class Promise {
         }
     }
     then(onFulfilled, onRejected) { // onFulfilled,  onRejected
-
+        // 值的穿透  默认值  默认往后传
+        onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v;
+        onRejected = typeof onRejected === 'function' ? onRejected : e => {
+            throw e;
+        };
         let promise2 = new Promise((resolve, reject) => {
             if (this.status === PENDING) { // 异步  发布订阅
                 this.onResolvedCallbacks.push(() => {
@@ -131,6 +142,36 @@ class Promise {
         });
         return promise2;
     }
+    catch(onRejected) {
+        return this.then(null, onRejected)
+    }
+    // 静态方法
+    static resolve(value) {
+        return new Promise((resolve, reject) => {
+            resolve(value);
+        })
+    }
+    static reject(err) {
+        return new Promise((resolve, reject) => {
+            reject(err);
+        })
+    }
+}
+
+
+// npm install promises-aplus-tests -g
+
+// promises-aplus-tests   xx.js
+
+
+// 延迟对象 帮我们减少一次套用 ： 针对目前来说 应用不是很广泛
+Promise.deferred = function () {
+    let dfd = {};
+    dfd.promise = new Promise((resolve,reject)=>{
+        dfd.resolve= resolve;
+        dfd.reject = reject;
+    }); 
+    return dfd;
 }
 
 module.exports = Promise;
