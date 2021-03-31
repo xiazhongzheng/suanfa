@@ -184,18 +184,12 @@ class Promise {
     }
     static race(promises) {
         return new Promise((resolve, reject) => {
-            const processSuccess = (i, p) => {
-                resolve(p);
-            }
-
             for (let i = 0; i < promises.length; i++) {
                 let p = promises[i];
                 if (p && typeof p.then === 'function') {
-                    p.then(value => {
-                        processSuccess(i, value);
-                    }, reject); // 一个失败，就失败
+                    p.then(resolve, reject); // 一个失败，就失败
                 } else {
-                    processSuccess(i, p);
+                    resolve(p)
                 }
             }
         })
