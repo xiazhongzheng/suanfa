@@ -145,8 +145,26 @@ class Promise {
     catch (onRejected) {
         return this.then(null, onRejected)
     }
-    finally(callBack) {
-        return this.then(callBack, callBack)
+    // finally(callBack) {
+    //     return this.then(callBack, callBack)
+    // }
+    // finally 中返回一个promise的话
+    // 如果promise是成功，不会使用成功结果，会传递上面的promise的结果。 ++++
+    // 如果promise是失败，会传递该失败  ++++
+    finally(cb) {
+        return this.then((data) => {
+            // finally前面的promise是成功。
+            // finally返回的promise是成功，会传递上面的promise的成功。
+            // finally返回的promise是失败，会传递自己的失败。
+            return Promise.resolve(cb()).then(() => data);
+        }, (err) => {
+            // finally前面的promise是失败。
+            // finally返回的promise是成功，会传递上面的promise的失败。
+            // finally返回的promise是失败，会传递自己的失败。
+            return Promise.resolve(cb()).then(() => {
+                throw err;
+            });
+        })
     }
     // 静态方法
     static resolve(value) {
